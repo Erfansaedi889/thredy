@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thredy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23F2B84B%22/><text x=%2250%22 y=%2268%22 font-size=%2258%22 font-family=%22Arial%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22%2316171D%22>T</text></svg>">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <a href="/" class="auth-logo-mark" style="text-decoration:none;">T</a>
+      <span class="auth-logo-word">Thredy</span>
+    </div>
+    <p class="auth-tagline">Where your people show up.</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Log in</button>
+      <button class="auth-tab" data-tab="register">Create account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="login-form" class="auth-form">
+      <label>Username or email
+        <input type="text" id="login-username" autocomplete="username" required>
+      </label>
+      <label>Password
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn-primary">Log in</button>
+      <p class="auth-error" id="login-error"></p>
+      <button type="button" id="resend-verification-btn" class="link-btn hidden">Resend verification email</button>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="register-form" class="auth-form hidden">
+      <label>Full name
+        <input type="text" id="register-fullname" autocomplete="name" required>
+      </label>
+      <label>Username
+        <input type="text" id="register-username" autocomplete="username" required>
+      </label>
+      <label>Email
+        <input type="email" id="register-email" autocomplete="email" required>
+      </label>
+      <label>Phone number <span class="optional-tag">(optional)</span>
+        <input type="tel" id="register-phone" autocomplete="tel">
+      </label>
+      <label>Date of birth
+        <input type="date" id="register-birthdate" required>
+      </label>
+      <label>Password
+        <input type="password" id="register-password" autocomplete="new-password" required>
+      </label>
+      <label>Confirm password
+        <input type="password" id="register-confirm-password" autocomplete="new-password" required>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="register-terms" required>
+        <span>I agree to the <button type="button" id="open-terms-btn" class="link-btn inline">Terms &amp; Policy</button></span>
+      </label>
+      <button type="submit" class="btn-primary">Create account</button>
+      <p class="auth-error" id="register-error"></p>
+    </form>
+
+    <!-- VERIFY EMAIL PENDING -->
+    <div id="verify-pending" class="auth-form hidden">
+      <div class="verify-icon">📧</div>
+      <h3 class="verify-title">Check your email</h3>
+      <p class="verify-text">We sent a verification link to <strong id="verify-pending-email"></strong>. Click it, then come back and log in.</p>
+      <p class="verify-dev-note hidden" id="verify-dev-note"></p>
+      <button type="button" id="verify-back-to-login-btn" class="btn-primary">Back to log in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="app hidden">
+
+  <!-- Server rail -->
+  <div class="server-rail">
+    <button id="home-btn" class="server-icon home-icon active" title="Home — friends &amp; DMs">🏠</button>
+    <div class="rail-divider"></div>
+    <div id="server-list" class="server-list"></div>
+    <button id="add-server-btn" class="server-icon add-server" title="Add or join a server">+</button>
+    <div class="rail-spacer"></div>
+    <button id="loom-btn" class="server-icon loom-icon" title="Loom">🧵</button>
+    <button id="admin-btn" class="server-icon admin-icon hidden" title="Admin panel">🛠️</button>
+  </div>
+
+  <!-- Home sidebar (friends & DMs) -->
+  <div class="channel-sidebar" id="home-sidebar">
+    <div class="server-header">Friends</div>
+    <div class="home-content">
+      <form id="add-friend-form" class="inline-form">
+        <input type="text" id="add-friend-username" placeholder="Add friend by username">
+        <button type="submit" class="btn-send-small">Add</button>
+      </form>
+      <p class="auth-error" id="add-friend-error"></p>
+
+      <div id="friend-requests-section" class="home-section hidden">
+        <div class="channel-section-label">Requests</div>
+        <div id="friend-requests-list"></div>
+      </div>
+
+      <div class="channel-section-label">
+        Direct messages
+        <button id="new-dm-btn" class="icon-btn" title="New DM or group">+</button>
+      </div>
+      <div id="dm-list" class="channel-list"></div>
+
+      <div class="channel-section-label">Friends — <span id="friends-count">0</span></div>
+      <div id="friends-list" class="channel-list"></div>
+
+      <button type="button" id="show-blocked-btn" class="link-btn small">Manage blocked users</button>
+    </div>
+    <div class="user-panel">
+      <div id="me-avatar" class="avatar"></div>
+      <div class="user-panel-info">
+        <button type="button" id="me-username" class="user-panel-name as-button"></button>
+        <div class="user-panel-status" id="me-loom-badge">Online</div>
+      </div>
+      <button id="logout-btn" class="icon-btn" title="Log out">⏻</button>
+    </div>
+  </div>
+
+  <!-- Server channel sidebar -->
+  <div class="channel-sidebar hidden" id="server-sidebar">
+    <div class="server-header">
+      <span id="current-server-name">Select a server</span>
+    </div>
+    <div class="channel-list-wrap">
+      <div class="channel-section-label">
+        Text channels
+        <button id="add-channel-btn" class="icon-btn" title="Create channel">+</button>
+      </div>
+      <div id="channel-list" class="channel-list"></div>
+    </div>
+    <div class="user-panel">
+      <div id="me-avatar-2" class="avatar"></div>
+      <div class="user-panel-info">
+        <button type="button" id="me-username-2" class="user-panel-name as-button"></button>
+        <div class="user-panel-status">Online</div>
+      </div>
+      <button id="logout-btn-2" class="icon-btn" title="Log out">⏻</button>
+    </div>
+  </div>
+
+  <!-- Chat area (shared between server channels and DMs) -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <span class="chat-header-hash" id="chat-header-icon">#</span>
+      <span id="current-channel-name">Select something to start chatting</span>
+      <button id="boost-btn" class="btn-boost hidden" title="Spend a boost on this server">🚀 Boost <span id="boost-count">0</span></button>
+    </div>
+    <div id="message-list" class="message-list">
+      <div class="empty-state" id="empty-state">
+        <p>Pick a server, a friend, or a DM on the left to start chatting.</p>
+      </div>
+    </div>
+    <div id="typing-indicator" class="typing-indicator"></div>
+    <form id="message-form" class="message-form hidden">
+      <input type="text" id="message-input" placeholder="Message" autocomplete="off" maxlength="4000">
+      <button type="submit" class="btn-send">Send</button>
+    </form>
+  </div>
+
+  <!-- Member / participant list -->
+  <div class="member-list-panel">
+    <div class="member-list-label" id="member-list-label">Members — <span id="member-count">0</span></div>
+    <div id="member-list" class="member-list"></div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-modal-tab="create">Create a server</button>
+      <button class="modal-tab" data-modal-tab="join">Join a server</button>
+    </div>
+
+    <form id="create-server-form" class="modal-form">
+      <label>Server name
+        <input type="text" id="create-server-name" placeholder="e.g. Late Night Coders" required>
+      </label>
+      <button type="submit" class="btn-primary">Create</button>
+      <p class="auth-error" id="create-server-error"></p>
+    </form>
+
+    <form id="join-server-form" class="modal-form hidden">
+      <label>Invite code
+        <input type="text" id="join-invite-code" placeholder="e.g. 4f9a2b1c" required>
+      </label>
+      <button type="submit" class="btn-primary">Join</button>
+      <p class="auth-error" id="join-server-error"></p>
+    </form>
+
+    <button id="close-modal-btn" class="modal-close">Cancel</button>
+  </div>
+</div>
+
+<div id="channel-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">Create a channel</h3>
+    <form id="create-channel-form" class="modal-form">
+      <label>Channel name
+        <input type="text" id="create-channel-name" placeholder="e.g. random" required>
+      </label>
+      <button type="submit" class="btn-primary">Create channel</button>
+      <p class="auth-error" id="create-channel-error"></p>
+    </form>
+    <button id="close-channel-modal-btn" class="modal-close">Cancel</button>
+  </div>
+</div>
+
+<div id="terms-modal-overlay" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <h3 class="modal-title">Thredy Terms &amp; Policy</h3>
+    <div class="terms-text">
+      <p><strong>1. Your account.</strong> You're responsible for what happens under your account and for keeping your password secret. You must be at least 13 years old to use Thredy.</p>
+      <p><strong>2. Be decent.</strong> Don't harass other people, don't post illegal content, and respect the communities you join. Server owners can moderate their own servers; the block feature lets you personally cut off contact with anyone.</p>
+      <p><strong>3. Your content.</strong> You own what you post. You're responsible for it. Don't post anything you don't have the right to share.</p>
+      <p><strong>4. Email verification.</strong> We require a verified email address to help keep the platform spam-free. We won't use it for anything other than account-related messages.</p>
+      <p><strong>5. Loom &amp; boosts.</strong> Loom is an optional membership. It is not currently self-serve — features described for it may change before general availability.</p>
+      <p><strong>6. No warranty.</strong> Thredy is provided as-is, self-hosted software. The operator of this specific instance is responsible for its uptime and data, not the Thredy project itself.</p>
+      <p><strong>7. Changes.</strong> These terms may change as Thredy grows; continuing to use the platform after a change means you accept the update.</p>
+    </div>
+    <button type="button" id="close-terms-btn" class="btn-primary">Got it</button>
+  </div>
+</div>
+
+<div id="profile-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">Edit profile</h3>
+    <form id="edit-profile-form" class="modal-form">
+      <label>Display name
+        <input type="text" id="profile-fullname" maxlength="60">
+      </label>
+      <label>Bio
+        <textarea id="profile-bio" maxlength="200" rows="3"></textarea>
+      </label>
+      <label>Avatar color</label>
+      <div id="avatar-color-swatches" class="avatar-swatches"></div>
+      <button type="submit" class="btn-primary">Save changes</button>
+      <p class="auth-error" id="profile-error"></p>
+    </form>
+    <button id="close-profile-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="dm-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">New message</h3>
+    <form id="create-dm-form" class="modal-form">
+      <label>Username(s) — comma-separated. 2+ starts a group DM.
+        <input type="text" id="dm-usernames" placeholder="e.g. alice, bob">
+      </label>
+      <label>Group name <span class="optional-tag">(optional, groups only)</span>
+        <input type="text" id="dm-group-name" maxlength="40">
+      </label>
+      <button type="submit" class="btn-primary">Start conversation</button>
+      <p class="auth-error" id="create-dm-error"></p>
+    </form>
+    <button id="close-dm-modal-btn" class="modal-close">Cancel</button>
+  </div>
+</div>
+
+<div id="blocked-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">Blocked users</h3>
+    <div id="blocked-list" class="channel-list"></div>
+    <p class="empty-hint" id="blocked-empty-hint">You haven't blocked anyone.</p>
+    <button id="close-blocked-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="loom-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">🧵 Loom</h3>
+    <p id="loom-status-text" class="loom-status"></p>
+    <p class="loom-modal-note">Loom isn't self-serve yet. If you'd like it (or a boost), reach out to <strong>Abolfazl</strong> — he can grant it for free, or let you know if it's currently invite-only.</p>
+    <button id="close-loom-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="admin-modal-overlay" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <h3 class="modal-title">Admin panel</h3>
+    <div id="admin-user-list" class="admin-user-list"></div>
+    <button id="close-admin-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="invite-toast" class="toast hidden"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/no-context-menu.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

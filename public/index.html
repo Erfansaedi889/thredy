@@ -1,153 +1,133 @@
 <!DOCTYPE html>
-<html lang="fa" dir="ltr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thredy</title>
+<title>Thredy — Where your people show up</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23F2B84B%22/><text x=%2250%22 y=%2268%22 font-size=%2258%22 font-family=%22Arial%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22%2316171D%22>T</text></svg>">
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/landing.css">
 </head>
 <body>
 
-<!-- ===== AUTH SCREEN ===== -->
-<div id="auth-screen" class="auth-screen">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <span class="auth-logo-mark">T</span>
-      <span class="auth-logo-word">Thredy</span>
-    </div>
-    <p class="auth-tagline">Where your people show up.</p>
-
-    <div class="auth-tabs">
-      <button class="auth-tab active" data-tab="login">Log in</button>
-      <button class="auth-tab" data-tab="register">Create account</button>
-    </div>
-
-    <form id="login-form" class="auth-form">
-      <label>Username
-        <input type="text" id="login-username" autocomplete="username" required>
-      </label>
-      <label>Password
-        <input type="password" id="login-password" autocomplete="current-password" required>
-      </label>
-      <button type="submit" class="btn-primary">Log in</button>
-      <p class="auth-error" id="login-error"></p>
-    </form>
-
-    <form id="register-form" class="auth-form hidden">
-      <label>Username
-        <input type="text" id="register-username" autocomplete="username" required>
-      </label>
-      <label>Password
-        <input type="password" id="register-password" autocomplete="new-password" required>
-      </label>
-      <button type="submit" class="btn-primary">Create account</button>
-      <p class="auth-error" id="register-error"></p>
-    </form>
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="brand-mark">T</span>
+    <span class="brand-word">Thredy</span>
   </div>
-</div>
-
-<!-- ===== MAIN APP ===== -->
-<div id="app" class="app hidden">
-
-  <!-- Server rail -->
-  <div class="server-rail">
-    <div id="server-list" class="server-list"></div>
-    <button id="add-server-btn" class="server-icon add-server" title="Add or join a server">+</button>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#news">What's new</a>
+    <a href="#loom">Loom</a>
   </div>
+  <div class="nav-actions">
+    <a href="/app/" class="btn-ghost">Log in</a>
+    <a href="/app/" class="btn-solid">Sign up free</a>
+  </div>
+</nav>
 
-  <!-- Channel sidebar -->
-  <div class="channel-sidebar">
-    <div class="server-header">
-      <span id="current-server-name">Select a server</span>
+<header class="hero">
+  <h1>Where your people<br>show up.</h1>
+  <p>Thredy is a place to hang out with your communities — text chat, servers, and friends, all in one place you can actually own.</p>
+  <div class="hero-actions">
+    <a href="/app/" class="btn-solid btn-lg">Get started — it's free</a>
+    <a href="#features" class="btn-ghost btn-lg">See what it can do</a>
+  </div>
+</header>
+
+<section class="section" id="features">
+  <h2>Everything you need, nothing you don't</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Servers &amp; channels</h3>
+      <p>Create a server for your community, split it into text channels, and keep every conversation in its own space.</p>
     </div>
-    <div class="channel-list-wrap">
-      <div class="channel-section-label">
-        Text channels
-        <button id="add-channel-btn" class="icon-btn" title="Create channel">+</button>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Real-time, always</h3>
+      <p>Messages, typing indicators, and online status update instantly — no refreshing, no waiting.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧑‍🤝‍🧑</div>
+      <h3>Friends &amp; DMs</h3>
+      <p>Add friends by username, message them directly, or start a group chat with a few people at once.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Block &amp; control</h3>
+      <p>Block anyone who's bothering you — friend requests and DMs from them stop immediately.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧵</div>
+      <h3>Loom</h3>
+      <p>An optional membership with perks like server boosts — for the people who want to support their favorite communities.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Verified accounts</h3>
+      <p>Every account confirms its email before joining in, keeping the platform a little more spam-free.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section alt" id="news">
+  <h2>What's new</h2>
+  <div class="changelog" id="changelog-list"></div>
+</section>
+
+<section class="section" id="loom">
+  <div class="loom-panel">
+    <div class="loom-icon">🧵</div>
+    <h2>Meet Loom</h2>
+    <p>Loom is Thredy's optional membership. It comes with <strong>3 free server boosts</strong> to spend on any community you're part of, plus more perks as they roll out.</p>
+    <p class="loom-note">Loom isn't self-serve just yet — reach out to <strong>Abolfazl</strong>, the developer, if you'd like it.</p>
+    <a href="/app/" class="btn-solid">Create your account</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>Thredy — built and maintained by <strong>Abolfazl</strong>.</p>
+  <p class="footer-links"><a href="/app/">Open app</a></p>
+</footer>
+
+<script src="/js/no-context-menu.js"></script>
+<script>
+  const CHANGELOG = [
+    {
+      version: 'v0.2 — Beta',
+      date: 'This update',
+      items: [
+        'Full sign-up flow with email verification, terms & policy, and profile details',
+        'Friends: send requests by username, accept/decline, remove, and block/unblock',
+        'Direct messages — one-on-one and group DMs with 3 or more people',
+        'Loom membership with free server boosts, plus an admin panel to grant it',
+        'A proper homepage (you\'re looking at it) instead of dropping straight into login',
+      ],
+    },
+    {
+      version: 'v0.1 — Initial release',
+      date: 'First build',
+      items: [
+        'Servers with invite codes and text channels',
+        'Real-time messaging with Socket.io, message history, typing indicators',
+        'Online/offline presence',
+      ],
+    },
+  ];
+
+  const list = document.getElementById('changelog-list');
+  CHANGELOG.forEach((entry) => {
+    const card = document.createElement('div');
+    card.className = 'changelog-entry';
+    card.innerHTML = `
+      <div class="changelog-head">
+        <span class="changelog-version">${entry.version}</span>
+        <span class="changelog-date">${entry.date}</span>
       </div>
-      <div id="channel-list" class="channel-list"></div>
-    </div>
-    <div class="user-panel">
-      <div id="me-avatar" class="avatar"></div>
-      <div class="user-panel-info">
-        <div id="me-username" class="user-panel-name"></div>
-        <div class="user-panel-status">Online</div>
-      </div>
-      <button id="logout-btn" class="icon-btn" title="Log out">⏻</button>
-    </div>
-  </div>
-
-  <!-- Chat area -->
-  <div class="chat-area">
-    <div class="chat-header">
-      <span class="chat-header-hash">#</span>
-      <span id="current-channel-name">channel</span>
-    </div>
-    <div id="message-list" class="message-list">
-      <div class="empty-state" id="empty-state">
-        <p>Pick a server on the left, or create one to get started.</p>
-      </div>
-    </div>
-    <div id="typing-indicator" class="typing-indicator"></div>
-    <form id="message-form" class="message-form hidden">
-      <input type="text" id="message-input" placeholder="Message #general" autocomplete="off" maxlength="4000">
-      <button type="submit" class="btn-send">Send</button>
-    </form>
-  </div>
-
-  <!-- Member list -->
-  <div class="member-list-panel">
-    <div class="member-list-label">Members — <span id="member-count">0</span></div>
-    <div id="member-list" class="member-list"></div>
-  </div>
-</div>
-
-<!-- ===== MODALS ===== -->
-<div id="modal-overlay" class="modal-overlay hidden">
-  <div class="modal">
-    <div class="modal-tabs">
-      <button class="modal-tab active" data-modal-tab="create">Create a server</button>
-      <button class="modal-tab" data-modal-tab="join">Join a server</button>
-    </div>
-
-    <form id="create-server-form" class="modal-form">
-      <label>Server name
-        <input type="text" id="create-server-name" placeholder="e.g. Late Night Coders" required>
-      </label>
-      <button type="submit" class="btn-primary">Create</button>
-      <p class="auth-error" id="create-server-error"></p>
-    </form>
-
-    <form id="join-server-form" class="modal-form hidden">
-      <label>Invite code
-        <input type="text" id="join-invite-code" placeholder="e.g. 4f9a2b1c" required>
-      </label>
-      <button type="submit" class="btn-primary">Join</button>
-      <p class="auth-error" id="join-server-error"></p>
-    </form>
-
-    <button id="close-modal-btn" class="modal-close">Cancel</button>
-  </div>
-</div>
-
-<div id="channel-modal-overlay" class="modal-overlay hidden">
-  <div class="modal">
-    <h3 class="modal-title">Create a channel</h3>
-    <form id="create-channel-form" class="modal-form">
-      <label>Channel name
-        <input type="text" id="create-channel-name" placeholder="e.g. random" required>
-      </label>
-      <button type="submit" class="btn-primary">Create channel</button>
-      <p class="auth-error" id="create-channel-error"></p>
-    </form>
-    <button id="close-channel-modal-btn" class="modal-close">Cancel</button>
-  </div>
-</div>
-
-<div id="invite-toast" class="toast hidden"></div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/app.js"></script>
+      <ul>${entry.items.map((i) => `<li>${i}</li>`).join('')}</ul>
+    `;
+    list.appendChild(card);
+  });
+</script>
 </body>
 </html>

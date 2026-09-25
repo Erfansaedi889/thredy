@@ -22,6 +22,22 @@ function isMember(serverId, userId) {
   return !!db.prepare('SELECT 1 FROM server_members WHERE server_id = ? AND user_id = ?').get(serverId, userId);
 }
 
+function isDmParticipant(dmChannelId, userId) {
+  return !!db.prepare('SELECT 1 FROM dm_participants WHERE dm_channel_id = ? AND user_id = ?').get(dmChannelId, userId);
+}
+
+function dmOtherParticipants(dmChannelId, userId) {
+  return db.prepare('SELECT user_id FROM dm_participants WHERE dm_channel_id = ? AND user_id != ?')
+    .all(dmChannelId, userId).map((r) => r.user_id);
+}
+
+function isBlockedEitherWay(userA, userB) {
+  return !!db.prepare(`
+    SELECT 1 FROM blocks
+    WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)
+  `).get(userA, userB, userB, userA);
+}
+
 function channelServerId(channelId) {
   const row = db.prepare('SELECT server_id FROM channels WHERE id = ?').get(channelId);
   return row ? row.server_id : null;
@@ -56,6 +72,10 @@ function initSockets(io) {
       socket.join(`server:${serverId}`);
       io.to(`server:${serverId}`).emit('presence:update', { userId, online: true });
     });
+
+    // Join a room per DM/group DM the user is part of
+    const myDms = db.prepare('SELECT dm_channel_id FROM dm_participants WHERE user_id = ?').all(userId).map(r => r.dm_channel_id);
+    myDms.forEach((dmId) => socket.join(`dm:${dmId}`));
 
     socket.on('channel:join', (channelId) => {
       const serverId = channelServerId(channelId);
@@ -105,6 +125,49 @@ function initSockets(io) {
       socket.to(`channel:${channelId}`).emit('typing', { channelId, userId, username: socket.user.username, isTyping });
     });
 
+    socket.on('dm:send', ({ dmChannelId, content }, ack) => {
+      const trimmed = (content || '').trim();
+      if (!trimmed || Buffer.byteLength(trimmed, 'utf8') > MAX_MESSAGE_BYTES) {
+        if (ack) ack({ error: 'Invalid message' });
+        return;
+      }
+      if (isRateLimited(socket.id)) {
+        if (ack) ack({ error: 'You are sending messages too fast. Please slow down.' });
+        return;
+      }
+      if (!isDmParticipant(dmChannelId, userId)) {
+        if (ack) ack({ error: 'Not part of this conversation' });
+        return;
+      }
+      // Safety net: if either side blocked the other after this DM was created, stop new messages.
+      const others = dmOtherParticipants(dmChannelId, userId);
+      if (others.some((otherId) => isBlockedEitherWay(userId, otherId))) {
+        if (ack) ack({ error: "You can't message this conversation anymore" });
+        return;
+      }
+
+      const now = Date.now();
+      const result = db.prepare(
+        'INSERT INTO dm_messages (dm_channel_id, user_id, content, created_at) VALUES (?, ?, ?, ?)'
+      ).run(dmChannelId, userId, trimmed, now);
+
+      const message = {
+        id: result.lastInsertRowid,
+        dm_channel_id: dmChannelId,
+        user_id: userId,
+        username: socket.user.username,
+        content: trimmed,
+        created_at: now,
+      };
+
+      io.to(`dm:${dmChannelId}`).emit('dm:new', message);
+      if (ack) ack({ ok: true, message });
+    });
+
+    socket.on('dm:typing', ({ dmChannelId, isTyping }) => {
+      socket.to(`dm:${dmChannelId}`).emit('dm:typing', { dmChannelId, userId, username: socket.user.username, isTyping });
+    });
+
     socket.on('disconnect', () => {
       messageTimestamps.delete(socket.id);
       const sockets = onlineUsers.get(userId);
@@ -140,4 +203,9 @@ function joinUserToServerRoom(io, userId, serverId) {
   getSocketsForUser(io, userId).forEach((socket) => socket.join(`server:${serverId}`));
 }
 
-module.exports = { initSockets, getOnlineUserIds, getSocketsForUser, joinUserToServerRoom };
+// Generic version of the above for arbitrary room names (e.g. `dm:${dmChannelId}`).
+function joinUserToRoom(io, userId, roomName) {
+  getSocketsForUser(io, userId).forEach((socket) => socket.join(roomName));
+}
+
+module.exports = { initSockets, getOnlineUserIds, getSocketsForUser, joinUserToServerRoom, joinUserToRoom };
