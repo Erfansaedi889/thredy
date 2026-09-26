@@ -87,6 +87,7 @@
     <div class="rail-divider"></div>
     <div id="server-list" class="server-list"></div>
     <button id="add-server-btn" class="server-icon add-server" title="Add or join a server">+</button>
+    <button id="discover-btn" class="server-icon" title="Discover public servers">🧭</button>
     <div class="rail-spacer"></div>
     <button id="loom-btn" class="server-icon loom-icon" title="Loom">🧵</button>
     <button id="admin-btn" class="server-icon admin-icon hidden" title="Admin panel">🛠️</button>
@@ -122,7 +123,7 @@
       <div id="me-avatar" class="avatar"></div>
       <div class="user-panel-info">
         <button type="button" id="me-username" class="user-panel-name as-button"></button>
-        <div class="user-panel-status" id="me-loom-badge">Online</div>
+        <button type="button" id="me-loom-badge" class="user-panel-status clickable"></button>
       </div>
       <button id="logout-btn" class="icon-btn" title="Log out">⏻</button>
     </div>
@@ -132,6 +133,10 @@
   <div class="channel-sidebar hidden" id="server-sidebar">
     <div class="server-header">
       <span id="current-server-name">Select a server</span>
+      <div class="server-header-actions">
+        <button id="server-settings-btn" class="icon-btn hidden" title="Server settings">⚙️</button>
+        <button id="leave-server-btn" class="icon-btn hidden" title="Leave server">🚪</button>
+      </div>
     </div>
     <div class="channel-list-wrap">
       <div class="channel-section-label">
@@ -144,7 +149,7 @@
       <div id="me-avatar-2" class="avatar"></div>
       <div class="user-panel-info">
         <button type="button" id="me-username-2" class="user-panel-name as-button"></button>
-        <div class="user-panel-status">Online</div>
+        <button type="button" id="me-loom-badge-2" class="user-panel-status clickable"></button>
       </div>
       <button id="logout-btn-2" class="icon-btn" title="Log out">⏻</button>
     </div>
@@ -155,7 +160,14 @@
     <div class="chat-header">
       <span class="chat-header-hash" id="chat-header-icon">#</span>
       <span id="current-channel-name">Select something to start chatting</span>
+      <button id="pin-messages-btn" class="btn-boost pin-messages-btn hidden" title="Pinned messages">📌</button>
       <button id="boost-btn" class="btn-boost hidden" title="Spend a boost on this server">🚀 Boost <span id="boost-count">0</span></button>
+    </div>
+    <div id="voice-view" class="voice-view hidden">
+      <h2 id="voice-channel-title">🔊 Voice channel</h2>
+      <div id="voice-participants-grid" class="voice-participants-grid"></div>
+      <button id="voice-toggle-btn" class="btn-voice-toggle">Join Voice</button>
+      <p class="voice-note">This is a voice lobby — it shows who's "in" the channel, but Thredy doesn't stream real audio/video yet.</p>
     </div>
     <div id="message-list" class="message-list">
       <div class="empty-state" id="empty-state">
@@ -165,6 +177,7 @@
     <div id="typing-indicator" class="typing-indicator"></div>
     <form id="message-form" class="message-form hidden">
       <input type="text" id="message-input" placeholder="Message" autocomplete="off" maxlength="4000">
+      <button type="button" id="emoji-btn" class="icon-btn" title="Add emoji">😀</button>
       <button type="submit" class="btn-send">Send</button>
     </form>
   </div>
@@ -211,6 +224,10 @@
       <label>Channel name
         <input type="text" id="create-channel-name" placeholder="e.g. random" required>
       </label>
+      <div class="channel-list">
+        <label class="channel-item"><input type="radio" name="channel-type" value="text" checked> # Text channel</label>
+        <label class="channel-item"><input type="radio" name="channel-type" value="voice"> 🔊 Voice channel</label>
+      </div>
       <button type="submit" class="btn-primary">Create channel</button>
       <p class="auth-error" id="create-channel-error"></p>
     </form>
@@ -293,6 +310,71 @@
     <h3 class="modal-title">Admin panel</h3>
     <div id="admin-user-list" class="admin-user-list"></div>
     <button id="close-admin-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="status-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">Set your status</h3>
+    <form id="status-form" class="modal-form">
+      <div class="channel-list" id="status-options">
+        <label class="channel-item"><input type="radio" name="status-choice" value="online" checked> 🟢 Online</label>
+        <label class="channel-item"><input type="radio" name="status-choice" value="idle"> 🌙 Idle</label>
+        <label class="channel-item"><input type="radio" name="status-choice" value="dnd"> ⛔ Do Not Disturb</label>
+        <label class="channel-item"><input type="radio" name="status-choice" value="invisible"> ⚪ Invisible</label>
+      </div>
+      <label>Custom status <span class="optional-tag">(optional)</span>
+        <input type="text" id="custom-status-input" maxlength="100" placeholder="What's happening?">
+      </label>
+      <button type="submit" class="btn-primary">Save</button>
+    </form>
+    <button id="close-status-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="server-settings-modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 class="modal-title">Server settings</h3>
+    <form id="server-settings-form" class="modal-form">
+      <label>Server name
+        <input type="text" id="settings-server-name" maxlength="40">
+      </label>
+      <label>Description <span class="optional-tag">(optional)</span>
+        <textarea id="settings-server-description" maxlength="200" rows="2"></textarea>
+      </label>
+      <label>Icon emoji <span class="optional-tag">(optional)</span></label>
+      <div class="emoji-input-row">
+        <input type="text" id="settings-server-icon" class="emoji-field" maxlength="4" placeholder="🎮">
+      </div>
+      <div class="toggle-row">
+        <span>Public — listed in Discover for anyone to join</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="settings-server-public">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">Save settings</button>
+      <p class="auth-error" id="server-settings-error"></p>
+    </form>
+    <button id="close-server-settings-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="discover-modal-overlay" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <h3 class="modal-title">🧭 Discover public servers</h3>
+    <div id="discover-list"></div>
+    <p class="empty-hint hidden" id="discover-empty-hint">No public servers yet — be the first to make one public in its settings!</p>
+    <button id="close-discover-modal-btn" class="modal-close">Close</button>
+  </div>
+</div>
+
+<div id="pinned-modal-overlay" class="modal-overlay hidden">
+  <div class="modal modal-wide">
+    <h3 class="modal-title">📌 Pinned messages</h3>
+    <div id="pinned-list"></div>
+    <p class="empty-hint hidden" id="pinned-empty-hint">No pinned messages in this channel yet.</p>
+    <button id="close-pinned-modal-btn" class="modal-close">Close</button>
   </div>
 </div>
 

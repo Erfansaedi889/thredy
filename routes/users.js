@@ -12,6 +12,8 @@ function publicProfile(user) {
     fullName: user.full_name,
     avatarColor: user.avatar_color,
     bio: user.bio || '',
+    status: user.status || 'online',
+    customStatus: user.custom_status || '',
     loomActive: !!user.loom_active,
   };
 }
@@ -28,7 +30,9 @@ router.patch('/me', (req, res) => {
     params.push(fullName.trim());
   }
   if (bio !== undefined) {
-    if (bio.length > 200) return res.status(400).json({ error: 'Bio must be under 200 characters' });
+    const me = db.prepare('SELECT loom_active FROM users WHERE id = ?').get(req.user.id);
+    const maxBio = me && me.loom_active ? 400 : 200;
+    if (bio.length > maxBio) return res.status(400).json({ error: `Bio must be under ${maxBio} characters` });
     updates.push('bio = ?');
     params.push(bio);
   }

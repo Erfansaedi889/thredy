@@ -7,7 +7,16 @@ router.use(requireAuth);
 
 router.get('/me', (req, res) => {
   const user = db.prepare('SELECT loom_active, boosts_available FROM users WHERE id = ?').get(req.user.id);
-  res.json({ loomActive: !!user.loom_active, boostsAvailable: user.boosts_available });
+  res.json({
+    loomActive: !!user.loom_active,
+    boostsAvailable: user.boosts_available,
+    perks: [
+      '3 free server boosts',
+      'Bigger message length limit (8,000 chars vs 4,000)',
+      'Longer bio (400 characters vs 200)',
+      'A 🧵 Loom badge next to your name in chat and member lists',
+    ],
+  });
 });
 
 // Purchasing isn't wired up to any payment provider yet — by design. Anyone who wants

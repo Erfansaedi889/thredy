@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
-const { getSocketsForUser } = require('../sockets');
+const { getSocketsForUser, isOnline } = require('../sockets');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -106,12 +106,12 @@ router.post('/requests/:id/decline', (req, res) => {
 // List current friends
 router.get('/', (req, res) => {
   const friends = db.prepare(`
-    SELECT u.id, u.username, u.avatar_color
+    SELECT u.id, u.username, u.avatar_color, u.status, u.custom_status
     FROM friend_requests fr
     JOIN users u ON u.id = (CASE WHEN fr.from_user_id = ? THEN fr.to_user_id ELSE fr.from_user_id END)
     WHERE fr.status = 'accepted' AND (fr.from_user_id = ? OR fr.to_user_id = ?)
   `).all(req.user.id, req.user.id, req.user.id);
-  res.json(friends);
+  res.json(friends.map((f) => ({ ...f, status: isOnline(f.id) ? f.status : 'offline' })));
 });
 
 // Remove a friend

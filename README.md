@@ -1,6 +1,6 @@
-# Thredy (v0.2 — Beta)
+# Thredy (v0.3 — "Alive")
 
-A self-hosted, real-time chat platform inspired by Discord: a public homepage, full account creation with email verification, servers with text channels, friends and direct messages (1:1 and group), blocking, an optional "Loom" membership with server boosts, and a small admin panel.
+A self-hosted, real-time chat platform inspired by Discord: a public homepage, full account creation with email verification, servers with roles and moderation, text + voice channels, message reactions/editing/pinning, friends and DMs, rich presence, an optional "Loom" membership with server boosts, server discovery, and a small admin panel.
 
 Built and maintained by **Abolfazl**.
 
@@ -14,13 +14,25 @@ Built and maintained by **Abolfazl**.
 
 **Full registration** — full name, username, email (required + verified), phone (optional), date of birth (13+ only), password + confirmation, and a Terms & Policy agreement checkbox. Accounts can't log in until the email is verified. If SMTP isn't configured, the verification link is printed to the server console (and shown in the UI in dev mode) instead of emailed, so you can still test the full flow locally.
 
-**Servers & channels** — create a server, get an invite code, join other servers, create text channels (server owner only for now), real-time messaging, message history, typing indicators, online presence.
+**Servers, roles & moderation** — create a server (optionally public, with an icon emoji and description), get an invite code, join other servers. The owner can promote members to **admin**; admins can create/delete channels, kick members, and pin messages, but only the owner can promote/demote or edit server settings. Members can leave a server at any time (the owner can't leave their own server).
+
+**Text & voice channels** — text channels work as before (real-time messages, history, typing indicators). Voice channels are a **live lobby**: click to "join" and everyone in the server sees who's there in real time. There's no real audio/video yet — see "Known limitations" below.
+
+**Messages that feel alive** — emoji reactions, editing your own messages, deleting your own (or, for admins/the owner, anyone's) messages, pinning/unpinning, and `@username` mentions that both highlight in the message and ping the mentioned person with a toast if they're online.
+
+**Rich presence** — set your status to online, idle, do-not-disturb, or invisible, plus an optional custom status message. It's visible to friends and anyone who shares a server with you, and only shows as "online" while you're actually connected (not just whatever you last set).
 
 **Friends & DMs** — send a friend request by username, accept/decline, remove a friend. Start a direct message with one friend, or a group DM with three or more people. Block/unblock a user — blocking removes any existing friendship and stops new DMs between you.
 
+**Server discovery** — mark a server public in its settings and it shows up in everyone's 🧭 Discover list, joinable with one click, no invite code needed.
+
 **Profile** — change your display name, bio, and avatar color from the profile modal (click your username in the sidebar).
 
-**Loom** — an optional membership. It's not self-serve: purchasing returns a message pointing people to Abolfazl. Granting Loom to an account gives it **3 free boosts**, which can be spent on any server the account is a member of. Boosting raises a server's boost level (level 1 at 2 boosts, level 2 at 7, level 3 at 14 — same shape as a familiar "boost" system).
+**Loom** — an optional membership. It's not self-serve: purchasing returns a message pointing people to Abolfazl. Granting Loom to an account gives it:
+- **3 free server boosts** (spend on any server you're a member of — boosting raises a server's boost level: level 1 at 2 boosts, level 2 at 7, level 3 at 14)
+- A bigger message length limit (8,000 bytes vs 4,000)
+- A longer bio (400 characters vs 200)
+- A shimmering 🧵 Loom badge next to your name in chat and member lists
 
 **Admin panel** — lists all users and lets an admin grant/revoke Loom (with its 3 boosts) or add boosts directly. See "Becoming an admin" below — this is intentionally not exposed to regular users.
 
@@ -74,7 +86,7 @@ There's no sign-up flag for admin — that's intentional, so nobody can grant it
 node scripts/make-admin.js your_username
 ```
 
-Log out and back in (or just refresh — `/api/auth/me` is re-checked) and you'll see a 🛠️ admin icon in the server rail. From there you can grant Loom (and its 3 free boosts) to any account, or add boosts directly.
+Refresh the app (`/api/auth/me` is re-checked on load) and you'll see a 🛠️ admin icon in the server rail. From there you can grant Loom (and its 3 free boosts) to any account, or add boosts directly.
 
 ## Deploying to your own server/host
 
@@ -113,15 +125,15 @@ thredy/
 ├── scripts/make-admin.js     # CLI: node scripts/make-admin.js <username>
 ├── routes/
 │   ├── auth.js                # register, verify-email, resend-verification, login, me
-│   ├── servers.js             # create/join servers, channels, members, boost
-│   ├── messages.js            # channel message history
+│   ├── servers.js             # create/join/discover servers, roles, channels (text+voice), boost
+│   ├── messages.js            # channel message history + pinned messages
 │   ├── users.js               # edit profile, look up a user by username
 │   ├── friends.js             # friend requests, friends list
 │   ├── blocks.js               # block/unblock, blocked list
 │   ├── dms.js                  # 1:1 and group DMs
 │   ├── premium.js              # Loom status, purchase gate
 │   └── admin.js                # grant/revoke Loom & boosts (admin only)
-├── sockets/index.js          # Real-time: channel + DM messages, presence, typing, boosts, friend notifications
+├── sockets/index.js          # Real-time: messages (send/edit/delete/react/pin), DMs, presence/status, voice lobby, mentions
 └── public/
     ├── index.html             # Public homepage / landing page
     ├── css/{style,landing}.css
@@ -131,9 +143,10 @@ thredy/
 
 ## Known limitations (why this is still "beta")
 
-- Only the server owner can create channels. No moderator roles, kicking, or banning yet.
-- Anyone with a server's invite code can join — no approval step.
+- **Voice channels don't carry real audio/video.** They're a live "who's here" lobby only. Real voice/video needs WebRTC plus a STUN/TURN server — a separate, sizable project on top of this.
+- Reactions and pinning are channel-only (not available on DM messages) for now.
+- Server ownership can't be transferred, and an owner can't leave or delete their own server yet.
+- Anyone with a server's invite code can join — there's no approval/waitlist step.
 - Loom purchasing isn't wired to a payment provider on purpose (see "Loom" above).
-- No voice/video — that needs WebRTC plus a STUN/TURN server, which is a separate, sizable project on top of this.
 - Message rate limiting is basic (8 messages / 5 seconds per socket) — enough to blunt casual spam, not a determined attacker running many connections.
 - SQLite is great for getting started; for real scale you'd move to Postgres and add a Redis adapter for Socket.io so you can run multiple app instances behind a load balancer.

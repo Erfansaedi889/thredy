@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   avatar_color TEXT NOT NULL,
   bio TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'online',        -- online | idle | dnd | invisible
+  custom_status TEXT DEFAULT '',
   email_verified INTEGER NOT NULL DEFAULT 0,
   verification_token TEXT,
   verification_expires INTEGER,
@@ -31,6 +33,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS servers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  icon_emoji TEXT DEFAULT '',
+  is_public INTEGER NOT NULL DEFAULT 0,
   owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   invite_code TEXT UNIQUE NOT NULL,
   boost_count INTEGER NOT NULL DEFAULT 0,
@@ -40,6 +45,7 @@ CREATE TABLE IF NOT EXISTS servers (
 CREATE TABLE IF NOT EXISTS server_members (
   server_id INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member', -- 'admin' | 'member' (owner is servers.owner_id)
   joined_at INTEGER NOT NULL,
   PRIMARY KEY (server_id, user_id)
 );
@@ -48,6 +54,7 @@ CREATE TABLE IF NOT EXISTS channels (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   server_id INTEGER NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'text', -- 'text' | 'voice'
   created_at INTEGER NOT NULL
 );
 
@@ -56,20 +63,29 @@ CREATE TABLE IF NOT EXISTS messages (
   channel_id INTEGER NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
+  edited_at INTEGER,
+  pinned INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
 
--- Friends: a pending/accepted request from one user to another
+CREATE TABLE IF NOT EXISTS message_reactions (
+  message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  emoji TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (message_id, user_id, emoji)
+);
+
+-- Friends
 CREATE TABLE IF NOT EXISTS friend_requests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   from_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   to_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT NOT NULL DEFAULT 'pending', -- pending | accepted | declined
+  status TEXT NOT NULL DEFAULT 'pending',
   created_at INTEGER NOT NULL,
   UNIQUE(from_user_id, to_user_id)
 );
 
--- Blocks: blocker_id blocks blocked_id
 CREATE TABLE IF NOT EXISTS blocks (
   blocker_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   blocked_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -77,7 +93,7 @@ CREATE TABLE IF NOT EXISTS blocks (
   PRIMARY KEY (blocker_id, blocked_id)
 );
 
--- Direct messages: works for both 1:1 DMs and group DMs (3+ people)
+-- Direct messages (1:1 and group)
 CREATE TABLE IF NOT EXISTS dm_channels (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   is_group INTEGER NOT NULL DEFAULT 0,
@@ -98,6 +114,7 @@ CREATE TABLE IF NOT EXISTS dm_messages (
   dm_channel_id INTEGER NOT NULL REFERENCES dm_channels(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
+  edited_at INTEGER,
   created_at INTEGER NOT NULL
 );
 
@@ -108,6 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_friend_req_to ON friend_requests(to_user_id, stat
 CREATE INDEX IF NOT EXISTS idx_friend_req_from ON friend_requests(from_user_id, status);
 CREATE INDEX IF NOT EXISTS idx_dm_participants_user ON dm_participants(user_id);
 CREATE INDEX IF NOT EXISTS idx_dm_messages_channel ON dm_messages(dm_channel_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_reactions_message ON message_reactions(message_id);
 `);
 
 module.exports = db;

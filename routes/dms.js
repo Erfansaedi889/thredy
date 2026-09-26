@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
-const { joinUserToRoom } = require('../sockets');
+const { joinUserToRoom, isOnline } = require('../sockets');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -20,11 +20,11 @@ function isParticipant(dmChannelId, userId) {
 function dmWithParticipants(dmChannelId) {
   const dm = db.prepare('SELECT * FROM dm_channels WHERE id = ?').get(dmChannelId);
   const participants = db.prepare(`
-    SELECT u.id, u.username, u.avatar_color
+    SELECT u.id, u.username, u.avatar_color, u.status, u.custom_status
     FROM dm_participants p JOIN users u ON u.id = p.user_id
     WHERE p.dm_channel_id = ?
   `).all(dmChannelId);
-  return { ...dm, participants };
+  return { ...dm, participants: participants.map((p) => ({ ...p, status: isOnline(p.id) ? p.status : 'offline' })) };
 }
 
 // List all DMs (1:1 and group) the current user is part of

@@ -20,6 +20,8 @@ function publicUser(user) {
     fullName: user.full_name,
     avatarColor: user.avatar_color,
     bio: user.bio || '',
+    status: user.status || 'online',
+    customStatus: user.custom_status || '',
     emailVerified: !!user.email_verified,
     isAdmin: !!user.is_admin,
     loomActive: !!user.loom_active,
@@ -135,7 +137,9 @@ router.post('/resend-verification', async (req, res) => {
 
   res.json({
     message: 'If that email exists and needs verification, a new link has been sent.',
-    devVerifyUrl: mailResult.delivered ? undefined : mailResult.verifyUrl,
+    devVerifyUrl: (process.env.NODE_ENV !== 'production' && !mailResult.delivered)
+  ? mailResult.verifyUrl
+  : undefined,
   });
 });
 
